@@ -1,81 +1,61 @@
-# Remote Desktop Connection · 通用远程桌面连接方案
+# Remote Computer Access · Windows 远程电脑访问方案
 
 **简体中文** | [English](README.en.md)
 
-一套开箱即用的 Windows 远程桌面（RDP）配置方案，覆盖两种最常见的连接场景：
+一套面向 Windows 的远程电脑访问方案，包含两个独立子项目：
 
-| 场景 | 适用条件 | 方案 | 典型延迟 |
+| 子项目 | 访问方式 | 典型用途 | 技术方案 |
 | --- | --- | --- | --- |
-| **同网段直连** | 两台机器在同一局域网（同一路由器 / WiFi） | 直连局域网 IP | 1–10 ms |
-| **异网段跨连** | 两台机器在不同网络（不同网段 / 异地） | 通过 Tailscale 组网 | 取决于公网质量 |
+| [子项目一：远程桌面访问](remote-desktop/README.md) | 操作整个远程桌面 | 远程办公、远程运维、图形界面操作 | Windows RDP + 局域网 / Tailscale |
+| [子项目二：远程文件访问](remote-file/README.md) | 像本地磁盘一样直接编辑远程文件 | 远程改文档、代码、配置文件 | OpenSSH/SFTP + SSHFS-Win + 局域网 / Tailscale |
 
-> **核心结论写在前面**：RDP 的延迟由网络 RTT 决定。参数只能优化画质与带宽占用，**压不下物理往返延迟**。先排查网络，再调参数。
+## 两个子项目的区别
 
-## 快速开始
+- **远程桌面访问**：你在本地看到并操作电脑 2 的整个桌面，适合需要运行远程程序、查看图形界面的场景。
+- **远程文件访问**：电脑 2 的目录挂载为电脑 1 的盘符，打开、修改、保存都直接写入电脑 2，适合只需要处理文件、不希望占用远程桌面的场景。
 
-### 一、同网段直连
+## 共同网络层
 
-1. 确认两台机器在同一网段：各自 `ipconfig`，看 IPv4 前三段是否一致。
-2. 目标机器开启远程桌面：`设置 → 系统 → 远程桌面 → 打开`。
-3. 复制 `rdp/same-subnet-lan.rdp.example`，把 `full address` 改成目标机器的局域网 IP。
-4. 双击连接。
+两个子项目都支持：
 
-### 二、异网段跨连（Tailscale）
+1. **同网段直连**：两台电脑在同一局域网，直接使用局域网 IP。
+2. **异网段跨连**：两台电脑在不同网络，通过 [Tailscale](https://tailscale.com/) 组网后使用 `100.x.x.x` 地址。
 
-1. 两台机器都安装 [Tailscale](https://tailscale.com/)，登录**同一个账号**。
-2. `tailscale status` 确认两台都在列表里，记下对方的 `100.x.x.x` 地址。
-3. 复制 `rdp/cross-subnet-tailscale.rdp.example`，把 `full address` 改成对方的 Tailscale IP 或 MagicDNS 名称。
-4. 双击连接。
-
-## 用脚本生成配置
-
-不想手改文件？用 `scripts/New-RdpProfile.ps1` 一键生成：
-
-```powershell
-# 同网段（局域网，满画质）
-.\scripts\New-RdpProfile.ps1 -Name "OfficePC" -Address "192.168.1.50" -Mode Lan
-
-# 异网段（Tailscale，省带宽）
-.\scripts\New-RdpProfile.ps1 -Name "HomePC" -Address "100.64.0.1" -Mode Tailscale
-
-# 指定分辨率与色深
-.\scripts\New-RdpProfile.ps1 -Name "Lab" -Address "10.0.0.8" -Mode Lan -Width 1920 -Height 1080 -Bpp 32
-```
-
-## 参数说明
-
-完整说明见 [docs/rdp-parameters.md](docs/rdp-parameters.md)。
-
-**最容易踩的坑**：`connection type:i:1` 并不代表“自动”，而是 **Modem（56 kbps）**。误设会把会话限速到 56k，画面慢到像卡死。正确取值见文档。
-
-## 延迟排查
-
-连接卡顿先别急着改参数。按 [docs/latency-diagnosis.md](docs/latency-diagnosis.md) 的顺序排查网络，可以快速区分：
-
-- 是**链路本身慢**（RTT 高、丢包、走中转）—— 调参数无效；
-- 还是**配置错了**（档位、色深、分辨率）—— 调参数立刻见效。
+跨网段时不建议把 RDP 3389 或 SSH 22 端口直接暴露到公网，优先使用加密组网。
 
 ## 目录结构
 
-```
+```text
 .
-├── rdp/
-│   ├── same-subnet-lan.rdp.example          # 同网段模板
-│   └── cross-subnet-tailscale.rdp.example   # 异网段（Tailscale）模板
-├── scripts/
-│   └── New-RdpProfile.ps1                   # .rdp 生成脚本
-├── docs/
-│   ├── rdp-parameters.md                    # 参数逐项说明
-│   └── latency-diagnosis.md                 # 延迟诊断方法论
-├── README.md                                # 中文说明（本文件）
-├── README.en.md                             # English README
+├── remote-desktop/          # 子项目一：远程桌面访问
+│   ├── README.md
+│   ├── rdp/                 # .rdp 模板
+│   ├── scripts/             # 配置生成脚本
+│   └── docs/                # 参数与延迟诊断文档
+├── remote-file/             # 子项目二：远程文件访问
+│   ├── README.md
+│   ├── docs/                # 通用 SSHFS 配置指南
+│   └── scripts/             # 服务端与客户端辅助脚本
+├── README.md                # 总入口（本文件）
+├── README.en.md             # English overview
 └── LICENSE
 ```
 
+## 快速选择
+
+| 需求 | 推荐 |
+| --- | --- |
+| 想操作远程电脑的整个桌面 | [remote-desktop](remote-desktop/README.md) |
+| 想在本地直接修改远程文件 | [remote-file](remote-file/README.md) |
+| 两台电脑偶尔同网段、偶尔异网段 | 两个子项目都可搭配 Tailscale，保持地址不变 |
+| 需要离线也能编辑，之后自动同步 | 本项目不适合，请考虑 Syncthing 等同步工具 |
+
 ## 安全提示
 
-- 不要把 RDP 的 3389 端口直接暴露到公网；跨网段优先用 Tailscale 这类加密组网。
-- `rdp` 模板默认不保存密码（`prompt for credentials:i:1`），密码交给 Windows 凭据管理器。
+- 不要将 RDP 3389、SSH 22 等端口直接映射到公网。
+- 跨网段访问优先使用 Tailscale 等加密组网。
+- 远程文件访问建议使用普通用户，不建议长期使用 Administrator。
+- 修改远程系统盘文件前先备份，误删系统文件可能导致远程电脑无法启动。
 
 ## License
 
