@@ -1,5 +1,7 @@
 # Remote Desktop Connection · 通用远程桌面连接方案
 
+**简体中文** | [English](README.en.md)
+
 一套开箱即用的 Windows 远程桌面（RDP）配置方案，覆盖两种最常见的连接场景：
 
 | 场景 | 适用条件 | 方案 | 典型延迟 |
@@ -65,7 +67,8 @@
 ├── docs/
 │   ├── rdp-parameters.md                    # 参数逐项说明
 │   └── latency-diagnosis.md                 # 延迟诊断方法论
-├── README.md
+├── README.md                                # 中文说明（本文件）
+├── README.en.md                             # English README
 └── LICENSE
 ```
 
