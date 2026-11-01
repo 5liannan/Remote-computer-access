@@ -41,6 +41,8 @@
 | 参数 | 说明 |
 | --- | --- |
 | `screen mode id:i:2` | `2` = 全屏；`1` = 窗口 |
+| `use multimon:i:1` | `1` = 启用多显示器；`0` = 只用一个屏幕 |
+| `selectedmonitors:s:0,1` | 只使用指定显示器。显示器 ID 用 `mstsc /l` 查看 |
 | `desktopwidth:i:` / `desktopheight:i:` | 指定远程会话分辨率。**留空则跟随本机原生分辨率**；跨高延迟链路可降到 `1280×720` 减少每帧数据 |
 | `disable wallpaper:i:1` | 关闭壁纸 |
 | `disable themes:i:1` | 关闭主题（退回经典外观） |

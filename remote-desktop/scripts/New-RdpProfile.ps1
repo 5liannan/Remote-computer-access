@@ -24,6 +24,9 @@
 .PARAMETER Bpp
     色深，默认 32。
 
+.PARAMETER UseMultimon
+    启用多显示器。远程会话会把本地多个显示器作为独立屏幕使用。
+
 .EXAMPLE
     .\New-RdpProfile.ps1 -Name "OfficePC" -Address "192.168.1.50" -Mode Lan
 
@@ -53,7 +56,9 @@ param(
     [ValidateSet(8, 15, 16, 24, 32)]
     [int]$Bpp = 32,
 
-    [string]$OutDir = '.'
+    [string]$OutDir = '.',
+
+    [switch]$UseMultimon
 )
 
 $lines = [System.Collections.Generic.List[string]]::new()
@@ -64,6 +69,10 @@ $lines.Add('administrative session:i:0')
 $lines.Add('audiomode:i:1')
 $lines.Add('redirectclipboard:i:1')
 $lines.Add('screen mode id:i:2')
+
+if ($UseMultimon) {
+    $lines.Add('use multimon:i:1')
+}
 
 if ($Width -gt 0 -and $Height -gt 0) {
     $lines.Add("desktopwidth:i:$Width")

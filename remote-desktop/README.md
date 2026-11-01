@@ -25,6 +25,25 @@
 3. 复制 `rdp/cross-subnet-tailscale.rdp.example`，把 `full address` 改成对方的 Tailscale IP 或 MagicDNS 名称。
 4. 双击连接。
 
+## 热点直连与双屏显示
+
+如果你用 Windows 移动热点给远程机器联网，热点通常会创建 `192.168.137.0/24` 网段。此时 `.rdp` 里的 `full address` 应填远程机器在热点下拿到的 `192.168.137.x`，而不是主机当前 Wi-Fi 的 IP。
+
+如果你希望远程桌面使用本地多个显示器，在 `.rdp` 中加入：
+
+```text
+screen mode id:i:2
+use multimon:i:1
+```
+
+只想使用其中两个屏幕时，再加：
+
+```text
+selectedmonitors:s:0,1
+```
+
+详细说明见 [docs/hotspot-and-multimon.md](docs/hotspot-and-multimon.md)。
+
 ## 用脚本生成配置
 
 在仓库根目录执行：
@@ -38,6 +57,9 @@
 
 # 指定分辨率与色深
 .\remote-desktop\scripts\New-RdpProfile.ps1 -Name "Lab" -Address "10.0.0.8" -Mode Lan -Width 1920 -Height 1080 -Bpp 32
+
+# 使用本地多个显示器
+.\remote-desktop\scripts\New-RdpProfile.ps1 -Name "DualScreen" -Address "192.168.1.50" -Mode Lan -UseMultimon
 ```
 
 ## 参数说明
